@@ -69,7 +69,7 @@ jobs:
 
       - name: Publish Minecraft release
         run: |
-          curl --fail -X POST "$BLUEVA_UPDATE_URL" \
+          curl -X POST "$BLUEVA_UPDATE_URL" \
             -H "Authorization: Bearer ${{ secrets.BLUEVA_API_KEY }}" \
             -F "resource_id=$BLUEVA_RESOURCE_ID" \
             -F "channel_id=$BLUEVA_CHANNEL_ID_MINECRAFT" \
@@ -80,7 +80,7 @@ jobs:
 
       - name: Publish Hytale release
         run: |
-          curl --fail -X POST "$BLUEVA_UPDATE_URL" \
+          curl -X POST "$BLUEVA_UPDATE_URL" \
             -H "Authorization: Bearer ${{ secrets.BLUEVA_API_KEY }}" \
             -F "resource_id=$BLUEVA_RESOURCE_ID" \
             -F "channel_id=$BLUEVA_CHANNEL_ID_HYTALE" \
