@@ -7,8 +7,12 @@
 
     <groupId>net.blueva.arcade.modules</groupId>
     <artifactId>Race-Module</artifactId>
-    <version>1.0.0</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
+
+    <properties>
+        <revision>dev</revision>
+    </properties>
 
     <modules>
         <module>race-minecraft</module>
