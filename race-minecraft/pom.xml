@@ -8,11 +8,10 @@
     <parent>
         <groupId>net.blueva.arcade.modules</groupId>
         <artifactId>Race-Module</artifactId>
-        <version>1.0.0</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>Race-Module-Minecraft</artifactId>
-
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
@@ -45,4 +44,16 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>module.yml</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
 </project>
