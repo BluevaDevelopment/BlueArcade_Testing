@@ -23,7 +23,7 @@ import com.hypixel.hytale.server.core.entity.entities.player.movement.MovementMa
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.io.PacketHandler;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import java.util.HashMap;
@@ -55,7 +55,7 @@ public class RaceGameManager {
         this.messagingService = new RaceMessagingService(moduleInfo, moduleConfig, coreConfig, progressService);
     }
 
-    public void handleStart(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void handleStart(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
 
         context.getSchedulerAPI().cancelArenaTasks(arenaId);
@@ -68,7 +68,7 @@ public class RaceGameManager {
         messagingService.sendDescription(context);
     }
 
-    public void handleCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void handleCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                     int secondsLeft) {
         messagingService.sendCountdownTick(context, secondsLeft);
         handleMovementTick(context);
@@ -77,11 +77,11 @@ public class RaceGameManager {
         }
     }
 
-    public void handleCountdownFinish(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void handleCountdownFinish(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         messagingService.sendCountdownFinished(context);
     }
 
-    public void handleGameStart(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void handleGameStart(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         startGameTimer(context);
         restoreMovementSpeed(context);
 
@@ -92,7 +92,7 @@ public class RaceGameManager {
         }
     }
 
-    private void startGameTimer(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void startGameTimer(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
 
         Integer gameTime = context.getDataAccess().getGameData("basic.time", Integer.class);
@@ -158,11 +158,11 @@ public class RaceGameManager {
         }, 0L, 10L);
     }
 
-    public void handleGameTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void handleGameTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         handleMovementTick(context);
     }
 
-    public void handlePlayerMove(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void handlePlayerMove(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                  Player player,
                                  Location from,
                                  Location to) {
@@ -183,9 +183,14 @@ public class RaceGameManager {
         }
     }
 
-    private void processActiveMovement(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void processActiveMovement(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                        Player player,
                                        Location to) {
+        // Skip death handling for spectators
+        if (context.getSpectators().contains(player)) {
+            return;
+        }
+
         // Check bounds
         if (!context.isInsideBounds(to)) {
             playDeathEffect(player);
@@ -197,7 +202,7 @@ public class RaceGameManager {
         }
 
         // Check finish line
-        if (messagingService.isInsideFinishLine(context, to) && !context.getSpectators().contains(player)) {
+        if (messagingService.isInsideFinishLine(context, to)) {
             context.finishPlayer(player);
 
             int position = context.getSpectators().indexOf(player) + 1;
@@ -232,13 +237,13 @@ public class RaceGameManager {
         loadoutService.applyRespawnEffects(player);
     }
 
-    public void handlePlayerDeath(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void handlePlayerDeath(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                   Player player,
                                   boolean deathBlock) {
         messagingService.broadcastDeath(context, player, deathBlock);
     }
 
-    private void endGameOnce(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void endGameOnce(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                              String reason) {
         int arenaId = context.getArenaId();
 
@@ -255,14 +260,19 @@ public class RaceGameManager {
         if (visualEffectsAPI == null || player == null) {
             return;
         }
-        Location location = resolvePlayerLocation(player);
-        if (location == null) {
+        GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context = getGameContext(player);
+        if (context == null) {
             return;
         }
-        visualEffectsAPI.playDeathEffect(player, location);
+        context.getSchedulerAPI().runAtEntity(player, () -> {
+            Location location = resolvePlayerLocation(player);
+            if (location != null) {
+                visualEffectsAPI.playDeathEffect(player, location);
+            }
+        });
     }
 
-    public void handleEnd(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void handleEnd(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
 
         context.getSchedulerAPI().cancelArenaTasks(arenaId);
@@ -275,7 +285,7 @@ public class RaceGameManager {
         stateRegistry.clearAll();
     }
 
-    public GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> getGameContext(Player player) {
+    public GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> getGameContext(Player player) {
         Integer arenaId = stateRegistry.getArenaId(player);
         if (arenaId == null) {
             return null;
@@ -286,7 +296,7 @@ public class RaceGameManager {
     public Map<String, String> getCustomPlaceholders(Player player) {
         Map<String, String> placeholders = new HashMap<>();
 
-        GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context = getGameContext(player);
+        GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context = getGameContext(player);
         if (context != null) {
             int position = progressService.calculateLivePosition(context, player);
             placeholders.put("race_position", String.valueOf(position));
@@ -302,62 +312,79 @@ public class RaceGameManager {
         return placeholders;
     }
 
-    private void startMovementTracking(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void startMovementTracking(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
         String taskId = "arena_" + arenaId + "_race_movement";
-        context.getSchedulerAPI().runTimer(taskId, () -> handleMovementTick(context), 0L, 5L);
+        Location worldLocation = context.getArenaAPI().getRandomSpawn();
+        if (worldLocation == null) {
+            worldLocation = context.getArenaAPI().getBoundsMin();
+        }
+        if (worldLocation != null) {
+            context.getSchedulerAPI().runTimer(taskId, () -> handleMovementTick(context), 0L, 5L);
+        } else {
+            context.getSchedulerAPI().runTimer(taskId, () -> handleMovementTick(context), 0L, 5L);
+        }
     }
 
-    private void handleMovementTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void handleMovementTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         for (Player player : context.getPlayers()) {
             if (player == null) {
                 continue;
             }
-            Location current = resolvePlayerLocation(player);
-            if (current == null) {
-                continue;
-            }
-            Location previous = stateRegistry.getLastPosition(player);
-            if (previous != null) {
-                handlePlayerMove(context, player, previous, current);
-            }
-            stateRegistry.updateLastPosition(player, current);
+            handleMovementTickForPlayer(context, player);
         }
     }
 
-    private void capturePlayerPositions(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void handleMovementTickForPlayer(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
+                                             Player player) {
+        Location current = resolvePlayerLocation(player);
+        if (current == null) {
+            return;
+        }
+        Location previous = stateRegistry.getLastPosition(player);
+        if (previous != null) {
+            handlePlayerMove(context, player, previous, current);
+        }
+        stateRegistry.updateLastPosition(player, current);
+    }
+
+    private void capturePlayerPositions(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         for (Player player : context.getPlayers()) {
             if (player == null) {
                 continue;
             }
-            Location location = resolvePlayerLocation(player);
-            if (location != null) {
-                stateRegistry.updateLastPosition(player, location);
-                stateRegistry.updateSpawnPosition(player, location);
-            }
+            context.getSchedulerAPI().runAtEntity(player, () -> {
+                Location location = resolvePlayerLocation(player);
+                if (location != null) {
+                    stateRegistry.updateLastPosition(player, location);
+                    stateRegistry.updateSpawnPosition(player, location);
+                }
+            });
         }
     }
 
-    private void scheduleSpawnCapture(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void scheduleSpawnCapture(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
         String taskId = "arena_" + arenaId + "_race_spawn_capture";
         context.getSchedulerAPI().runLater(taskId, () -> refreshSpawnAnchors(context), 1L);
     }
 
-    private void refreshSpawnAnchors(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void refreshSpawnAnchors(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         for (Player player : context.getPlayers()) {
             if (player == null) {
                 continue;
             }
-            Location current = resolvePlayerLocation(player);
-            if (current != null) {
-                stateRegistry.updateSpawnPosition(player, current);
-                stateRegistry.updateLastPosition(player, current);
-            }
+            context.getSchedulerAPI().runAtEntity(player, () -> {
+                Location current = resolvePlayerLocation(player);
+                if (current != null) {
+                    stateRegistry.updateSpawnPosition(player, current);
+                    stateRegistry.updateLastPosition(player, current);
+                }
+            });
         }
     }
 
-    private void teleportPlayersToSpawn(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void teleportPlayersToSpawn(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         for (Player player : context.getPlayers()) {
             if (player == null) {
                 continue;
@@ -370,19 +397,19 @@ public class RaceGameManager {
         }
     }
 
-    private void applyCountdownMovementSpeed(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void applyCountdownMovementSpeed(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         for (Player player : context.getPlayers()) {
             updateMovementSpeedMultiplier(context, player, 0.1f);
         }
     }
 
-    private void restoreMovementSpeed(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void restoreMovementSpeed(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         for (Player player : context.getPlayers()) {
             updateMovementSpeedMultiplier(context, player, 1.0f);
         }
     }
 
-    private void updateMovementSpeedMultiplier(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void updateMovementSpeedMultiplier(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                                Player player,
                                                float multiplier) {
         if (player == null || player.getReference() == null) {
@@ -427,7 +454,7 @@ public class RaceGameManager {
     }
 
     private Location resolvePlayerLocation(Player player) {
-        if (player == null || player.getWorld() == null) {
+        if (player == null || player.getWorld() == null || player.getTransformComponent() == null) {
             return null;
         }
         Vector3d position = player.getTransformComponent().getPosition();
@@ -443,7 +470,7 @@ public class RaceGameManager {
                 || (int) Math.floor(fromPos.z) != (int) Math.floor(toPos.z);
     }
 
-    private void teleportPlayer(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void teleportPlayer(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                 Player player,
                                 Location location) {
         if (player == null || location == null) {
