@@ -6,7 +6,7 @@ import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 
 import java.util.Map;
 import java.util.UUID;
@@ -17,7 +17,7 @@ public class RaceStateRegistry {
     private final Map<Integer, RaceArenaState> arenas = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> playerArenas = new ConcurrentHashMap<>();
 
-    public void registerArena(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void registerArena(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
         arenas.put(arenaId, new RaceArenaState(context));
         context.getPlayers().forEach(player -> playerArenas.put(player.getUuid(), arenaId));
@@ -27,7 +27,7 @@ public class RaceStateRegistry {
         return playerArenas.get(player.getUuid());
     }
 
-    public GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> getContext(int arenaId) {
+    public GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> getContext(int arenaId) {
         RaceArenaState state = arenas.get(arenaId);
         return state != null ? state.getContext() : null;
     }
