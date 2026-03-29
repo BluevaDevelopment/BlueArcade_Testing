@@ -11,7 +11,7 @@ import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class RaceMessagingService {
         this.progressService = progressService;
     }
 
-    public void sendDescription(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void sendDescription(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         List<String> description = moduleConfig.getStringListFrom("language.yml", "description");
 
         for (Player player : context.getPlayers()) {
@@ -44,7 +44,7 @@ public class RaceMessagingService {
         }
     }
 
-    public void sendCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void sendCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                   int secondsLeft) {
         for (Player player : context.getPlayers()) {
             context.getSoundsAPI().play(player, coreConfig.getSound("sounds.starting_game.countdown"));
@@ -61,7 +61,7 @@ public class RaceMessagingService {
         }
     }
 
-    public void sendCountdownFinished(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void sendCountdownFinished(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         for (Player player : context.getPlayers()) {
             String title = coreConfig.getLanguage("titles.game_started.title")
                     .replace("{game_display_name}", moduleInfo.getName());
@@ -75,9 +75,14 @@ public class RaceMessagingService {
         }
     }
 
-    public void broadcastDeath(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void broadcastDeath(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                Player player,
                                boolean deathBlock) {
+        // Don't broadcast death messages for spectators
+        if (context.getSpectators().contains(player)) {
+            return;
+        }
+
         String path = deathBlock ? "messages.deaths.death_block" : "messages.deaths.void";
         String message = getRandomMessage(path);
         if (message == null) {
@@ -90,7 +95,7 @@ public class RaceMessagingService {
         }
     }
 
-    public void broadcastFinish(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void broadcastFinish(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                 Player player,
                                 int position) {
         String message = getRandomMessage("messages.finish.crossed");
@@ -107,7 +112,7 @@ public class RaceMessagingService {
         }
     }
 
-    public void sendFinishTitles(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void sendFinishTitles(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                  Player player,
                                  int position) {
         String title = moduleConfig.getStringFrom("language.yml", "titles.finished.title");
@@ -118,12 +123,12 @@ public class RaceMessagingService {
         context.getSoundsAPI().play(player, coreConfig.getSound("sounds.in_game.classified"));
     }
 
-    public void playRespawnSound(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void playRespawnSound(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                  Player player) {
         context.getSoundsAPI().play(player, coreConfig.getSound("sounds.in_game.respawn"));
     }
 
-    public String getDeathBlock(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public String getDeathBlock(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         try {
             String deathBlockName = context.getDataAccess().getGameData("basic.death_block", String.class);
             if (deathBlockName != null) {
@@ -135,7 +140,7 @@ public class RaceMessagingService {
         return "hytale:barrier";
     }
 
-    public boolean isInsideFinishLine(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public boolean isInsideFinishLine(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                       Location location) {
         try {
             Location finishMin = context.getDataAccess().getGameLocation("game.finish_line.bounds.min");
@@ -161,7 +166,7 @@ public class RaceMessagingService {
         }
     }
 
-    public void sendSpectatorDescriptions(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void sendSpectatorDescriptions(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         if (context.getPhase() != GamePhase.PLAYING) {
             return;
         }
