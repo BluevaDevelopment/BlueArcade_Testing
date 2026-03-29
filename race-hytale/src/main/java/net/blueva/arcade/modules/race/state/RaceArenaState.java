@@ -6,7 +6,7 @@ import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 
 import java.util.Map;
 import java.util.UUID;
@@ -14,19 +14,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RaceArenaState {
 
-    private final GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context;
+    private final GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context;
     private final Map<UUID, Location> lastKnownPositions;
     private final Map<UUID, Location> spawnPositions;
     private boolean ended;
     private UUID winner;
 
-    public RaceArenaState(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public RaceArenaState(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         this.context = context;
         this.lastKnownPositions = new ConcurrentHashMap<>();
         this.spawnPositions = new ConcurrentHashMap<>();
     }
 
-    public GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> getContext() {
+    public GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> getContext() {
         return context;
     }
 
