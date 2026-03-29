@@ -17,7 +17,7 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import net.blueva.arcade.api.game.GameContext;
 import net.blueva.arcade.modules.race.RaceGameManager;
@@ -57,7 +57,7 @@ public class RaceDamageListener extends EntityEventSystem<EntityStore, Damage> {
             return;
         }
 
-        GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context =
+        GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context =
                 gameManager.getGameContext(victimPlayer);
         if (context == null || !context.isPlayerPlaying(victimPlayer)) {
             return;
