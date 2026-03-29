@@ -19,11 +19,11 @@ import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 
 import java.util.Map;
 
-public class RaceModule implements GameModule<Player, Location, World, String, ItemStack, String, BlockState, Entity, EventSubscription<?>, Short> {
+public class RaceModule implements GameModule<Player, Location, World, String, ItemStack, String, Holder, Entity, EventSubscription<?>, Short> {
 
     private ModuleConfigAPI moduleConfig;
     private CoreConfigAPI coreConfig;
@@ -71,18 +71,18 @@ public class RaceModule implements GameModule<Player, Location, World, String, I
     }
 
     @Override
-    public void onStart(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void onStart(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         gameManager.handleStart(context);
     }
 
     @Override
-    public void onCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void onCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                 int secondsLeft) {
         gameManager.handleCountdownTick(context, secondsLeft);
     }
 
     @Override
-    public void onCountdownFinish(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void onCountdownFinish(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         gameManager.handleCountdownFinish(context);
     }
 
@@ -92,18 +92,18 @@ public class RaceModule implements GameModule<Player, Location, World, String, I
     }
 
     @Override
-    public void onGameStart(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void onGameStart(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         gameManager.handleGameStart(context);
     }
 
     @Override
-    public void onGameTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void onGameTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                            int secondsRemaining) {
         gameManager.handleGameTick(context);
     }
 
     @Override
-    public void onEnd(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void onEnd(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                       GameResult<Player> result) {
         gameManager.handleEnd(context);
     }
