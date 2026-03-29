@@ -14,6 +14,9 @@ jobs:
 
     env:
       BLUEVA_UPDATE_URL: "https://store.blueva.net/index.php?route=/api/v2/resources/update"
+      BLUEVA_RESOURCE_ID: "33"
+      BLUEVA_CHANNEL_ID_MINECRAFT: "minecraft"
+      BLUEVA_CHANNEL_ID_HYTALE: "hytale"
 
     steps:
       - name: Checkout repository
@@ -67,8 +70,8 @@ jobs:
         run: |
           curl --fail -X POST "$BLUEVA_UPDATE_URL" \
             -H "Authorization: Bearer ${{ secrets.BLUEVA_API_KEY }}" \
-            -F "resource_id=${{ secrets.BLUEVA_RESOURCE_ID }}" \
-            -F "channel_id=${{ secrets.BLUEVA_CHANNEL_ID_MINECRAFT }}" \
+            -F "resource_id=$BLUEVA_RESOURCE_ID" \
+            -F "channel_id=$BLUEVA_CHANNEL_ID_MINECRAFT" \
             -F "version=${{ steps.version.outputs.version }}" \
             -F "title=Race Minecraft ${{ steps.version.outputs.version }}" \
             -F "changelog=Automated release from commit ${{ github.sha }}" \
@@ -78,8 +81,8 @@ jobs:
         run: |
           curl --fail -X POST "$BLUEVA_UPDATE_URL" \
             -H "Authorization: Bearer ${{ secrets.BLUEVA_API_KEY }}" \
-            -F "resource_id=${{ secrets.BLUEVA_RESOURCE_ID }}" \
-            -F "channel_id=${{ secrets.BLUEVA_CHANNEL_ID_HYTALE }}" \
+            -F "resource_id=$BLUEVA_RESOURCE_ID" \
+            -F "channel_id=$BLUEVA_CHANNEL_ID_HYTALE" \
             -F "version=${{ steps.version.outputs.version }}" \
             -F "title=Race Hytale ${{ steps.version.outputs.version }}" \
             -F "changelog=Automated release from commit ${{ github.sha }}" \
