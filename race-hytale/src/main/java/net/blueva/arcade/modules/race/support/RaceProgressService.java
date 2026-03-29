@@ -7,7 +7,7 @@ import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class RaceProgressService {
 
-    public int calculateLivePosition(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public int calculateLivePosition(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                      Player player) {
         List<Player> alivePlayers = context.getAlivePlayers();
         List<Player> spectators = context.getSpectators();
@@ -43,7 +43,7 @@ public class RaceProgressService {
         return spectators.size() + alivePlayers.size();
     }
 
-    public List<Player> getTopPlayersByDistance(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public List<Player> getTopPlayersByDistance(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         List<Player> alivePlayers = context.getAlivePlayers();
         List<Player> spectators = context.getSpectators();
 
@@ -65,7 +65,7 @@ public class RaceProgressService {
         return topPlayers;
     }
 
-    public String formatDistance(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public String formatDistance(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                  Player player) {
         if (context.getSpectators().contains(player)) {
             return "0";
@@ -79,7 +79,7 @@ public class RaceProgressService {
         return String.format("%.0f", distance);
     }
 
-    private double getDistanceToFinish(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private double getDistanceToFinish(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                        Player player) {
         try {
             Location finishMin = context.getDataAccess().getGameLocation("game.finish_line.bounds.min");
@@ -96,6 +96,10 @@ public class RaceProgressService {
             double centerY = (minPos.y + maxPos.y) / 2;
             double centerZ = (minPos.z + maxPos.z) / 2;
 
+            World world = player.getWorld();
+            if (world == null || !world.isInThread() || player.getTransformComponent() == null) {
+                return Double.MAX_VALUE;
+            }
             Vector3d playerPos = player.getTransformComponent().getPosition();
 
             double dx = playerPos.x - centerX;
