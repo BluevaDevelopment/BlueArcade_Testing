@@ -1,6 +1,6 @@
 name: Race
 id: race
-version: 1.0.0
+version: ${revision}
 type: MICROGAME
 api-version: 1.0
 main: net.blueva.arcade.modules.race.RaceModule
