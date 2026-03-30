@@ -55,4 +55,4 @@ If you only need one edition, you can build it on its own:
 - Website: https://www.blueva.net
 - Documentation: https://docs.blueva.net/books/blue-arcade
 - Support: https://discord.com/invite/CRFJ32NdcK
- 
+  
