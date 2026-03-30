@@ -58,6 +58,30 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Resolve publish targets
+        id: targets
+        shell: bash
+        run: |
+          COMMIT_MSG="$(git log -1 --pretty=%B | head -n 1)"
+          echo "Commit title: $COMMIT_MSG"
+
+          PUBLISH_MC=true
+          PUBLISH_HT=true
+
+          if [[ "$COMMIT_MSG" =~ ^\[MC\] ]]; then
+            PUBLISH_MC=true
+            PUBLISH_HT=false
+          elif [[ "$COMMIT_MSG" =~ ^\[HT\] ]]; then
+            PUBLISH_MC=false
+            PUBLISH_HT=true
+          fi
+
+          echo "publish_mc=$PUBLISH_MC" >> "$GITHUB_OUTPUT"
+          echo "publish_ht=$PUBLISH_HT" >> "$GITHUB_OUTPUT"
+
+          echo "Publish Minecraft: $PUBLISH_MC"
+          echo "Publish Hytale: $PUBLISH_HT"
+
       - name: Build Maven project
         run: mvn -B clean package -Drevision=${{ steps.version.outputs.version }}
 
@@ -85,6 +109,7 @@ jobs:
           echo "Hytale JAR: $HT_JAR"
 
       - name: Publish Minecraft release
+        if: steps.targets.outputs.publish_mc == 'true'
         shell: bash
         run: |
           curl -X POST "$BLUEVA_UPDATE_URL" \
@@ -97,6 +122,7 @@ jobs:
             -F "file=@${{ steps.jars.outputs.mc_jar }}"
 
       - name: Publish Hytale release
+        if: steps.targets.outputs.publish_ht == 'true'
         shell: bash
         run: |
           curl -X POST "$BLUEVA_UPDATE_URL" \
