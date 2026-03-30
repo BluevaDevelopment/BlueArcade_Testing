@@ -2,7 +2,7 @@ name: Race
 id: test
 version: ${revision}
 type: MICROGAME
-api-version: 1.0
+api-version: 3.2
 main: net.blueva.arcade.modules.race.RaceModule
 
 authors:
