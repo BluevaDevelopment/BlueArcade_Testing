@@ -34,19 +34,36 @@ jobs:
 
       - name: Resolve build version
         id: version
+        shell: bash
         run: |
           SHORT_SHA=$(git rev-parse --short=7 HEAD)
           BUILD_DATE=$(date +%Y%m%d)
           VERSION="${BUILD_DATE}-${SHORT_SHA}"
 
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Resolved version: $VERSION"
+
+      - name: Resolve changelog
+        id: changelog
+        shell: bash
+        run: |
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+          COMMIT_MSG="$(git log -1 --pretty=%B)"
+
+          {
+            echo "content<<EOF"
+            echo "Automated release from commit $COMMIT_URL"
+            echo
+            echo "$COMMIT_MSG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build Maven project
         run: mvn -B clean package -Drevision=${{ steps.version.outputs.version }}
 
       - name: Locate generated JAR files
         id: jars
+        shell: bash
         run: |
           MC_JAR=$(find race-minecraft/target -maxdepth 1 -type f -name "*.jar" ! -name "*sources.jar" ! -name "*javadoc.jar" | head -n 1)
           HT_JAR=$(find race-hytale/target -maxdepth 1 -type f -name "*.jar" ! -name "*sources.jar" ! -name "*javadoc.jar" | head -n 1)
@@ -61,13 +78,14 @@ jobs:
             exit 1
           fi
 
-          echo "mc_jar=$MC_JAR" >> $GITHUB_OUTPUT
-          echo "ht_jar=$HT_JAR" >> $GITHUB_OUTPUT
+          echo "mc_jar=$MC_JAR" >> "$GITHUB_OUTPUT"
+          echo "ht_jar=$HT_JAR" >> "$GITHUB_OUTPUT"
 
           echo "Minecraft JAR: $MC_JAR"
           echo "Hytale JAR: $HT_JAR"
 
       - name: Publish Minecraft release
+        shell: bash
         run: |
           curl -X POST "$BLUEVA_UPDATE_URL" \
             -H "Authorization: Bearer ${{ secrets.BLUEVA_API_KEY }}" \
@@ -75,10 +93,11 @@ jobs:
             -F "channel_id=$BLUEVA_CHANNEL_ID_MINECRAFT" \
             -F "version=${{ steps.version.outputs.version }}" \
             -F "title=Race Minecraft ${{ steps.version.outputs.version }}" \
-            -F "changelog=Automated release from commit ${{ github.sha }}" \
+            -F "changelog=${{ steps.changelog.outputs.content }}" \
             -F "file=@${{ steps.jars.outputs.mc_jar }}"
 
       - name: Publish Hytale release
+        shell: bash
         run: |
           curl -X POST "$BLUEVA_UPDATE_URL" \
             -H "Authorization: Bearer ${{ secrets.BLUEVA_API_KEY }}" \
@@ -86,5 +105,5 @@ jobs:
             -F "channel_id=$BLUEVA_CHANNEL_ID_HYTALE" \
             -F "version=${{ steps.version.outputs.version }}" \
             -F "title=Race Hytale ${{ steps.version.outputs.version }}" \
-            -F "changelog=Automated release from commit ${{ github.sha }}" \
+            -F "changelog=${{ steps.changelog.outputs.content }}" \
             -F "file=@${{ steps.jars.outputs.ht_jar }}"
