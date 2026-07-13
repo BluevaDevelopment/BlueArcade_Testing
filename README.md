@@ -17,7 +17,7 @@ This is a **Microgame**: it is designed for party game rotations, but it can als
 - Player stats tracking and placeholders.
 - XP system, leaderboards, and achievements.
 - Arena management tools and setup commands.
-
+ 
 ## Features
 - Finish line region detection.
 - Supports the shared timing and scoring systems.
