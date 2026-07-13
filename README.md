@@ -7,7 +7,7 @@ Get BlueArcade 3 here: https://store.blueva.net/resources/resource/1-blue-arcade
 Classic race mode: first to the finish line wins.
 
 ## Game type notes
-This is a **Microgame**: it is designed for party game rotations, but it can also run as a standalone arena. Microgames typically focus on short, fast rounds.
+This is a **Microgame**: it is designed for par ty game rotations, but it can also run as a standalone arena. Microgames typically focus on short, fast rounds.
 
 ## What you get with BlueArcade 3 + this module
 - Party system (lobbies, queues, and shared party flow).
